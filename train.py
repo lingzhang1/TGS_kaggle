@@ -71,3 +71,49 @@ print(len(train_df))
 train_df["images"] = [np.array(load_img("../input/train/images/{}.png".format(idx), grayscale=True)) / 255 for idx in tqdm_notebook(train_df.index)]
 # ########### 6 ##########
 train_df["masks"] = [np.array(load_img("../input/train/masks/{}.png".format(idx), grayscale=True)) / 255 for idx in tqdm_notebook(train_df.index)]
+
+# ########### 7 ##########
+#### Reference  from Heng's discussion
+# https://www.kaggle.com/c/tgs-salt-identification-challenge/discussion/63984#382657
+def get_mask_type(mask):
+    border = 10
+    outer = np.zeros((101-2*border, 101-2*border), np.float32)
+    outer = cv2.copyMakeBorder(outer, border, border, border, border, borderType = cv2.BORDER_CONSTANT, value = 1)
+
+    cover = (mask>0.5).sum()
+    if cover < 8:
+        return 0 # empty
+    if cover == ((mask*outer) > 0.5).sum():
+        return 1 #border
+    if np.all(mask==mask[0]):
+        return 2 #vertical
+
+    percentage = cover/(101*101)
+    if percentage < 0.15:
+        return 3
+    elif percentage < 0.25:
+        return 4
+    elif percentage < 0.50:
+        return 5
+    elif percentage < 0.75:
+        return 6
+    else:
+        return 7
+
+def histcoverage(coverage):
+    histall = np.zeros((1,8))
+    for c in coverage:
+        histall[0,c] += 1
+    return histall
+
+train_df["coverage"] = train_df.masks.map(np.sum) / pow(img_size_target, 2)
+
+train_df["coverage_class"] = train_df.masks.map(get_mask_type)
+
+train_all = []
+evaluate_all = []
+skf = StratifiedKFold(n_splits=cv_total, random_state=1234, shuffle=True)
+for train_index, evaluate_index in skf.split(train_df.index.values, train_df.coverage_class):
+    train_all.append(train_index)
+    evaluate_all.append(evaluate_index)
+    print(train_index.shape,evaluate_index.shape) # the shape is slightly different in different cv, it's OK
