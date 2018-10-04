@@ -319,7 +319,7 @@ def predict_result(model,x_test,img_size_target): # predict both orginal and ref
     preds_test += np.array([ np.fliplr(x) for x in preds_test2_refect] )
     return preds_test/2
 
-with tf.device('/gpu:0'):
+with tf.device('/device:GPU:0'):
     # training
     ious = [0] * cv_total
     for cv_index in range(cv_total):
