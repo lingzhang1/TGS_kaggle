@@ -110,6 +110,8 @@ train_df["coverage"] = train_df.masks.map(np.sum) / pow(img_size_target, 2)
 
 train_df["coverage_class"] = train_df.masks.map(get_mask_type)
 
+# ########### 8 ##########
+
 train_all = []
 evaluate_all = []
 skf = StratifiedKFold(n_splits=cv_total, random_state=1234, shuffle=True)
@@ -117,3 +119,37 @@ for train_index, evaluate_index in skf.split(train_df.index.values, train_df.cov
     train_all.append(train_index)
     evaluate_all.append(evaluate_index)
     print(train_index.shape,evaluate_index.shape) # the shape is slightly different in different cv, it's OK
+
+# ########### 9 ##########
+def get_cv_data(cv_index):
+    train_index = train_all[cv_index-1]
+    evaluate_index = evaluate_all[cv_index-1]
+    x_train = np.array(train_df.images[train_index].map(upsample).tolist()).reshape(-1, img_size_target, img_size_target, 1)
+    y_train = np.array(train_df.masks[train_index].map(upsample).tolist()).reshape(-1, img_size_target, img_size_target, 1)
+    x_valid = np.array(train_df.images[evaluate_index].map(upsample).tolist()).reshape(-1, img_size_target, img_size_target, 1)
+    y_valid = np.array(train_df.masks[evaluate_index].map(upsample).tolist()).reshape(-1, img_size_target, img_size_target, 1)
+    return x_train,y_train,x_valid,y_valid
+
+cv_index = 1
+train_index = train_all[cv_index-1]
+evaluate_index = evaluate_all[cv_index-1]
+
+print(train_index.shape,evaluate_index.shape)
+histall = histcoverage(train_df.coverage_class[train_index].values)
+print(f'train cv{cv_index}, number of each mask class = \n \t{histall}')
+histall_test = histcoverage(train_df.coverage_class[evaluate_index].values)
+print(f'evaluate cv{cv_index}, number of each mask class = \n \t {histall_test}')
+
+# fig, axes = plt.subplots(nrows=2, ncols=8, figsize=(24, 6), sharex=True, sharey=True)
+
+# show mask class example
+# for c in range(8):
+#     j= 0
+#     for i in train_index:
+#         if train_df.coverage_class[i] == c:
+#             axes[j,c].imshow(np.array(train_df.masks[i])  )
+#             axes[j,c].set_axis_off()
+#             axes[j,c].set_title(f'class {c}')
+#             j += 1
+#             if(j>=2):
+#                 break
