@@ -66,5 +66,8 @@ depths_df = pd.read_csv("../input/depths.csv", index_col="id")
 train_df = train_df.join(depths_df)
 test_df = depths_df[~depths_df.index.isin(train_df.index)]
 
-
 print(len(train_df))
+# ########### 5 ##########
+train_df["images"] = [np.array(load_img("../input/train/images/{}.png".format(idx), grayscale=True)) / 255 for idx in tqdm_notebook(train_df.index)]
+# ########### 6 ##########
+train_df["masks"] = [np.array(load_img("../input/train/masks/{}.png".format(idx), grayscale=True)) / 255 for idx in tqdm_notebook(train_df.index)]
