@@ -41,7 +41,7 @@ cv_total = 5
 #cv_index = 1 -5
 
 version = 1
-basic_name_ori = 'Unet_resnet_v{version}'
+basic_name_ori = 'Unet_resnet_v' + str(version)
 save_model_name = basic_name_ori + '.model'
 submission_file = basic_name_ori + '.csv'
 
