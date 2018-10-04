@@ -354,3 +354,51 @@ for cv_index in range(cv_total):
     ious[cv_index] = get_iou_vector(y_valid, (preds_valid > 0.5))
 
 #model1.summary()
+
+
+################### 17 ####################
+for cv_index in range(cv_total):
+    print(f"cv {cv_index} ious = {ious[cv_index]}")
+
+"""
+used for converting the decoded image to rle mask
+Fast compared to previous one
+"""
+def rle_encode(im):
+    '''
+    im: numpy array, 1 - mask, 0 - background
+    Returns run length as string formated
+    '''
+    pixels = im.flatten(order = 'F')
+    pixels = np.concatenate([[0], pixels, [0]])
+    runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
+    runs[1::2] -= runs[::2]
+    return ' '.join(str(x) for x in runs)
+
+x_test = np.array([(np.array(load_img("../input/test/images/{}.png".format(idx), grayscale = True))) / 255 for idx in tqdm_notebook(test_df.index)]).reshape(-1, img_size_target, img_size_target, 1)
+
+# average the predictions from different folds
+t1 = time.time()
+preds_test = np.zeros(np.squeeze(x_test).shape)
+for cv_index in range(cv_total):
+    basic_name = f'Unet_resnet_v{version}_cv{cv_index+1}'
+    model.load_weights(basic_name + '.model')
+    preds_test += predict_result(model,x_test,img_size_target) /cv_total
+
+t2 = time.time()
+print(f"Usedtime = {t2-t1} s")
+
+t1 = time.time()
+threshold  = 0.5 # some value in range 0.4- 0.5 may be better
+pred_dict = {idx: rle_encode(np.round(preds_test[i]) > threshold) for i, idx in enumerate(tqdm_notebook(test_df.index.values))}
+t2 = time.time()
+
+print(f"Usedtime = {t2-t1} s")
+
+sub = pd.DataFrame.from_dict(pred_dict,orient='index')
+sub.index.names = ['id']
+sub.columns = ['rle_mask']
+sub.to_csv(submission_file)
+
+t_finish = time.time()
+print(f"Kernel run time = {(t_finish-t_start)/3600} hours")
