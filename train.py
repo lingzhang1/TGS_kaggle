@@ -318,87 +318,89 @@ def predict_result(model,x_test,img_size_target): # predict both orginal and ref
     preds_test2_refect = model.predict(x_test_reflect).reshape(-1, img_size_target, img_size_target)
     preds_test += np.array([ np.fliplr(x) for x in preds_test2_refect] )
     return preds_test/2
-# training
-ious = [0] * cv_total
-for cv_index in range(cv_total):
-    basic_name = f'Unet_resnet_v{version}_cv{cv_index+1}'
-    print('############################################\n', basic_name)
-    save_model_name = basic_name + '.model'
 
-    x_train, y_train, x_valid, y_valid =  get_cv_data(cv_index+1)
+with tf.device('/gpu:0'):
+    # training
+    ious = [0] * cv_total
+    for cv_index in range(cv_total):
+        basic_name = f'Unet_resnet_v{version}_cv{cv_index+1}'
+        print('############################################\n', basic_name)
+        save_model_name = basic_name + '.model'
 
-    #Data augmentation
-    x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
-    y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
+        x_train, y_train, x_valid, y_valid =  get_cv_data(cv_index+1)
 
-    model = build_complie_model(lr = 0.01)
+        #Data augmentation
+        x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
+        y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
 
-    model_checkpoint = ModelCheckpoint(save_model_name,monitor='val_my_iou_metric',
-                                   mode = 'max', save_best_only=True, verbose=1)
-    reduce_lr = ReduceLROnPlateau(monitor='val_my_iou_metric', mode = 'max',
-                                  factor=0.5, patience=3, min_lr=0.0001, verbose=1)
+        model = build_complie_model(lr = 0.01)
 
-    epochs = 20 #small number for demonstration
-    batch_size = 32
-    history = model.fit(x_train, y_train,
-                        validation_data=[x_valid, y_valid],
-                        epochs=epochs,
-                        batch_size=batch_size,
-                        callbacks=[ model_checkpoint,reduce_lr],
-                        verbose=2)
-    plot_history(history,'my_iou_metric')
+        model_checkpoint = ModelCheckpoint(save_model_name,monitor='val_my_iou_metric',
+                                       mode = 'max', save_best_only=True, verbose=1)
+        reduce_lr = ReduceLROnPlateau(monitor='val_my_iou_metric', mode = 'max',
+                                      factor=0.5, patience=3, min_lr=0.0001, verbose=1)
 
-    model.load_weights(save_model_name)
+        epochs = 20 #small number for demonstration
+        batch_size = 32
+        history = model.fit(x_train, y_train,
+                            validation_data=[x_valid, y_valid],
+                            epochs=epochs,
+                            batch_size=batch_size,
+                            callbacks=[ model_checkpoint,reduce_lr],
+                            verbose=2)
+        plot_history(history,'my_iou_metric')
 
-    preds_valid = predict_result(model,x_valid,img_size_target)
-    ious[cv_index] = get_iou_vector(y_valid, (preds_valid > 0.5))
+        model.load_weights(save_model_name)
 
-#model1.summary()
+        preds_valid = predict_result(model,x_valid,img_size_target)
+        ious[cv_index] = get_iou_vector(y_valid, (preds_valid > 0.5))
+
+    #model1.summary()
 
 
-################### 17 ####################
-for cv_index in range(cv_total):
-    print(f"cv {cv_index} ious = {ious[cv_index]}")
+    ################### 17 ####################
+    for cv_index in range(cv_total):
+        print(f"cv {cv_index} ious = {ious[cv_index]}")
 
-"""
-used for converting the decoded image to rle mask
-Fast compared to previous one
-"""
-def rle_encode(im):
-    '''
-    im: numpy array, 1 - mask, 0 - background
-    Returns run length as string formated
-    '''
-    pixels = im.flatten(order = 'F')
-    pixels = np.concatenate([[0], pixels, [0]])
-    runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
-    runs[1::2] -= runs[::2]
-    return ' '.join(str(x) for x in runs)
+    """
+    used for converting the decoded image to rle mask
+    Fast compared to previous one
+    """
+    def rle_encode(im):
+        '''
+        im: numpy array, 1 - mask, 0 - background
+        Returns run length as string formated
+        '''
+        pixels = im.flatten(order = 'F')
+        pixels = np.concatenate([[0], pixels, [0]])
+        runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
+        runs[1::2] -= runs[::2]
+        return ' '.join(str(x) for x in runs)
 
-x_test = np.array([(np.array(load_img("../input/test/images/{}.png".format(idx), grayscale = True))) / 255 for idx in tqdm_notebook(test_df.index)]).reshape(-1, img_size_target, img_size_target, 1)
+    x_test = np.array([(np.array(load_img("../input/test/images/{}.png".format(idx), grayscale = True))) / 255 for idx in tqdm_notebook(test_df.index)]).reshape(-1, img_size_target, img_size_target, 1)
 
-# average the predictions from different folds
-t1 = time.time()
-preds_test = np.zeros(np.squeeze(x_test).shape)
-for cv_index in range(cv_total):
-    basic_name = f'Unet_resnet_v{version}_cv{cv_index+1}'
-    model.load_weights(basic_name + '.model')
-    preds_test += predict_result(model,x_test,img_size_target) /cv_total
+    # average the predictions from different folds
+    t1 = time.time()
+    preds_test = np.zeros(np.squeeze(x_test).shape)
+    for cv_index in range(cv_total):
+        basic_name = f'Unet_resnet_v{version}_cv{cv_index+1}'
+        model.load_weights(basic_name + '.model')
+        preds_test += predict_result(model,x_test,img_size_target) /cv_total
 
-t2 = time.time()
-print(f"Usedtime = {t2-t1} s")
+    t2 = time.time()
+    print(f"Usedtime = {t2-t1} s")
 
-t1 = time.time()
-threshold  = 0.5 # some value in range 0.4- 0.5 may be better
-pred_dict = {idx: rle_encode(np.round(preds_test[i]) > threshold) for i, idx in enumerate(tqdm_notebook(test_df.index.values))}
-t2 = time.time()
+    t1 = time.time()
+    threshold  = 0.5 # some value in range 0.4- 0.5 may be better
+    pred_dict = {idx: rle_encode(np.round(preds_test[i]) > threshold) for i, idx in enumerate(tqdm_notebook(test_df.index.values))}
+    t2 = time.time()
 
-print(f"Usedtime = {t2-t1} s")
+    print(f"Usedtime = {t2-t1} s")
 
-sub = pd.DataFrame.from_dict(pred_dict,orient='index')
-sub.index.names = ['id']
-sub.columns = ['rle_mask']
-sub.to_csv(submission_file)
+    sub = pd.DataFrame.from_dict(pred_dict,orient='index')
+    sub.index.names = ['id']
+    sub.columns = ['rle_mask']
+    sub.to_csv(submission_file)
 
-t_finish = time.time()
-print(f"Kernel run time = {(t_finish-t_start)/3600} hours")
+    t_finish = time.time()
+    print(f"Kernel run time = {(t_finish-t_start)/3600} hours")
