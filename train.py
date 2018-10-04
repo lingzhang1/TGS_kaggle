@@ -66,4 +66,5 @@ depths_df = pd.read_csv("../input/depths.csv", index_col="id")
 train_df = train_df.join(depths_df)
 test_df = depths_df[~depths_df.index.isin(train_df.index)]
 
-len(train_df)
+
+print(len(train_df))
