@@ -47,3 +47,23 @@ submission_file = basic_name_ori + '.csv'
 
 print(save_model_name)
 print(submission_file)
+
+# ########### 3 ##########
+
+img_size_ori = 101
+img_size_target = 101
+
+def upsample(img):# not used
+    return img
+
+def downsample(img):# not used
+    return img
+
+# ########### 4 ##########
+# Loading of training/testing ids and depths
+train_df = pd.read_csv("../input/train.csv", index_col="id", usecols=[0])
+depths_df = pd.read_csv("../input/depths.csv", index_col="id")
+train_df = train_df.join(depths_df)
+test_df = depths_df[~depths_df.index.isin(train_df.index)]
+
+len(train_df)
