@@ -34,3 +34,16 @@ from keras.preprocessing.image import array_to_img, img_to_array, load_img#,save
 
 import time
 t_start = time.time()
+
+# ########### 2 ##########
+
+cv_total = 5
+#cv_index = 1 -5
+
+version = 1
+basic_name_ori = f'Unet_resnet_v{version}'
+save_model_name = basic_name_ori + '.model'
+submission_file = basic_name_ori + '.csv'
+
+print(save_model_name)
+print(submission_file)
