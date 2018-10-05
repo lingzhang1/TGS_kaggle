@@ -319,14 +319,14 @@ def predict_result(model,x_test,img_size_target): # predict both orginal and ref
     preds_test += np.array([ np.fliplr(x) for x in preds_test2_refect] )
     return preds_test/2
 
-with tf.device('/device:GPU:0'):
+# with tf.device('/device:GPU:0'):
     # training
     # ious = [0] * cv_total
     # for cv_index in range(cv_total):
     #     basic_name = f'Unet_resnet_v{version}_cv{cv_index+1}'
     #     print('############################################\n', basic_name)
     #     save_model_name = basic_name + '.model'
-    # 
+    #
     #     x_train, y_train, x_valid, y_valid =  get_cv_data(cv_index+1)
     #
     #     #Data augmentation
@@ -358,15 +358,15 @@ with tf.device('/device:GPU:0'):
     #model1.summary()
 
 # Create a session
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-config.allow_soft_placement = True
-config.log_device_placement = False
-sess = tf.Session(config=config)
+# config = tf.ConfigProto()
+# config.gpu_options.allow_growth = True
+# config.allow_soft_placement = True
+# config.log_device_placement = False
+# sess = tf.Session(config=config)
 
 # Init variables
-init = tf.global_variables_initializer()
-sess.run(init)
+# init = tf.global_variables_initializer()
+# sess.run(init)
 # print("++++++++++++++++++++ sess run ++++++++++++++++")
 
 ################### 17 ####################
