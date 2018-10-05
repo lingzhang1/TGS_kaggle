@@ -319,59 +319,59 @@ def predict_result(model,x_test,img_size_target): # predict both orginal and ref
     preds_test += np.array([ np.fliplr(x) for x in preds_test2_refect] )
     return preds_test/2
 
-# with tf.device('/device:GPU:0'):
+with tf.device('/device:GPU:0'):
     # training
-    # ious = [0] * cv_total
-    # for cv_index in range(cv_total):
-    #     basic_name = f'Unet_resnet_v{version}_cv{cv_index+1}'
-    #     print('############################################\n', basic_name)
-    #     save_model_name = basic_name + '.model'
-    #
-    #     x_train, y_train, x_valid, y_valid =  get_cv_data(cv_index+1)
-    #
-    #     #Data augmentation
-    #     x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
-    #     y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
-    #
-    #     model = build_complie_model(lr = 0.01)
-    #
-    #     model_checkpoint = ModelCheckpoint(save_model_name,monitor='val_my_iou_metric',
-    #                                    mode = 'max', save_best_only=True, verbose=1)
-    #     reduce_lr = ReduceLROnPlateau(monitor='val_my_iou_metric', mode = 'max',
-    #                                   factor=0.5, patience=3, min_lr=0.0001, verbose=1)
-    #
-    #     epochs = 20 #small number for demonstration
-    #     batch_size = 32
-    #     history = model.fit(x_train, y_train,
-    #                         validation_data=[x_valid, y_valid],
-    #                         epochs=epochs,
-    #                         batch_size=batch_size,
-    #                         callbacks=[ model_checkpoint,reduce_lr],
-    #                         verbose=2)
-    #     # plot_history(history,'my_iou_metric')
-    #
-    #     model.load_weights(save_model_name)
-    #
-    #     preds_valid = predict_result(model,x_valid,img_size_target)
-    #     ious[cv_index] = get_iou_vector(y_valid, (preds_valid > 0.5))
+    ious = [0] * cv_total
+    for cv_index in range(cv_total):
+        basic_name = f'Unet_resnet_v{version}_cv{cv_index+1}'
+        print('############################################\n', basic_name)
+        save_model_name = basic_name + '.model'
+
+        x_train, y_train, x_valid, y_valid =  get_cv_data(cv_index+1)
+
+        #Data augmentation
+        x_train = np.append(x_train, [np.fliplr(x) for x in x_train], axis=0)
+        y_train = np.append(y_train, [np.fliplr(x) for x in y_train], axis=0)
+
+        model = build_complie_model(lr = 0.01)
+
+        model_checkpoint = ModelCheckpoint(save_model_name,monitor='val_my_iou_metric',
+                                       mode = 'max', save_best_only=True, verbose=1)
+        reduce_lr = ReduceLROnPlateau(monitor='val_my_iou_metric', mode = 'max',
+                                      factor=0.5, patience=3, min_lr=0.0001, verbose=1)
+
+        epochs = 20 #small number for demonstration
+        batch_size = 32
+        history = model.fit(x_train, y_train,
+                            validation_data=[x_valid, y_valid],
+                            epochs=epochs,
+                            batch_size=batch_size,
+                            callbacks=[ model_checkpoint,reduce_lr],
+                            verbose=2)
+        # plot_history(history,'my_iou_metric')
+
+        model.load_weights(save_model_name)
+
+        preds_valid = predict_result(model,x_valid,img_size_target)
+        ious[cv_index] = get_iou_vector(y_valid, (preds_valid > 0.5))
 
     #model1.summary()
 
 # Create a session
-# config = tf.ConfigProto()
-# config.gpu_options.allow_growth = True
-# config.allow_soft_placement = True
-# config.log_device_placement = False
-# sess = tf.Session(config=config)
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+config.allow_soft_placement = True
+config.log_device_placement = False
+sess = tf.Session(config=config)
 
 # Init variables
-# init = tf.global_variables_initializer()
-# sess.run(init)
+init = tf.global_variables_initializer()
+sess.run(init)
 # print("++++++++++++++++++++ sess run ++++++++++++++++")
 
 ################### 17 ####################
-# for cv_index in range(cv_total):
-#     print(f"cv {cv_index} ious = {ious[cv_index]}")
+for cv_index in range(cv_total):
+    print(f"cv {cv_index} ious = {ious[cv_index]}")
 
 """
 used for converting the decoded image to rle mask
