@@ -348,7 +348,7 @@ with tf.device('/device:GPU:0'):
                             batch_size=batch_size,
                             callbacks=[ model_checkpoint,reduce_lr],
                             verbose=2)
-        plot_history(history,'my_iou_metric')
+        # plot_history(history,'my_iou_metric')
 
         model.load_weights(save_model_name)
 
@@ -366,10 +366,8 @@ sess = tf.Session(config=config)
 
 # Init variables
 init = tf.global_variables_initializer()
-# To fix the bug introduced in TF 0.12.1 as in
-# http://stackoverflow.com/questions/41543774/invalidargumenterror-for-tensor-bool-tensorflow-0-12-1
-#sess.run(init)
 sess.run(init)
+print("++++++++++++++++++++ sess run ++++++++++++++++")
 
 ################### 17 ####################
 for cv_index in range(cv_total):
