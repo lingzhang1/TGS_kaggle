@@ -131,13 +131,13 @@ def get_cv_data(cv_index):
     return x_train,y_train,x_valid,y_valid
 
 cv_index = 1
-train_index = train_all[cv_index-1]
+# train_index = train_all[cv_index-1]
 evaluate_index = evaluate_all[cv_index-1]
 
-# ########### 10 ##########
-print(train_index.shape,evaluate_index.shape)
-histall = histcoverage(train_df.coverage_class[train_index].values)
-print(f'train cv{cv_index}, number of each mask class = \n \t{histall}')
+# # ########### 10 ##########
+# print(train_index.shape,evaluate_index.shape)
+# histall = histcoverage(train_df.coverage_class[train_index].values)
+# print(f'train cv{cv_index}, number of each mask class = \n \t{histall}')
 histall_test = histcoverage(train_df.coverage_class[evaluate_index].values)
 print(f'evaluate cv{cv_index}, number of each mask class = \n \t {histall_test}')
 
