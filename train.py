@@ -394,7 +394,7 @@ x_test = np.array([(np.array(load_img("../input/test/images/{}.png".format(idx),
 t1 = time.time()
 preds_test = np.zeros(np.squeeze(x_test).shape)
 for cv_index in range(cv_total):
-    basic_name = f'Unet_resnet_v{version}_cv{cv_index+1}'
+    basic_name = f"Unet_resnet_v{version}_cv{cv_index+1}"
     model.load_weights(basic_name + '.model')
     preds_test += predict_result(model,x_test,img_size_target) /cv_total
 
