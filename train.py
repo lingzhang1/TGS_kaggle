@@ -138,8 +138,8 @@ evaluate_index = evaluate_all[cv_index-1]
 # print(train_index.shape,evaluate_index.shape)
 # histall = histcoverage(train_df.coverage_class[train_index].values)
 # print(f'train cv{cv_index}, number of each mask class = \n \t{histall}')
-histall_test = histcoverage(train_df.coverage_class[evaluate_index].values)
-print(f'evaluate cv{cv_index}, number of each mask class = \n \t {histall_test}')
+# histall_test = histcoverage(train_df.coverage_class[evaluate_index].values)
+# print(f'evaluate cv{cv_index}, number of each mask class = \n \t {histall_test}')
 
 # fig, axes = plt.subplots(nrows=2, ncols=8, figsize=(24, 6), sharex=True, sharey=True)
 
